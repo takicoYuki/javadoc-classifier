@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[test]"
+      - run: pytest -v
+      - name: サンプルを解析（エラーがあるので終了コード 1 になることを確認）
+        run: |
+          set +e
+          javadoc-classifier tests/fixtures -f markdown >> "$GITHUB_STEP_SUMMARY"
+          test $? -eq 1
